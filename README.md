@@ -25,4 +25,4 @@ README.md
 
 ## Status Pengerjaan
 
-Repository dimulai dari fase 0: menyiapkan README, `.gitignore`, dan spesifikasi proyek. Kerangka backend, frontend, serta CI akan ditambahkan pada fase berikutnya sesuai PLAN.
+Fase 0 selesai. Fase 1 menyiapkan kerangka Laravel dan Vue serta workflow CI; fitur aplikasi akan ditambahkan bertahap sesuai PLAN.
