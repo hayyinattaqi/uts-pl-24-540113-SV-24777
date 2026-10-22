@@ -32,8 +32,6 @@ jobs:
             export APP_KEY="$(php artisan key:generate --show --no-ansi)"
           fi
           php artisan test
-      - name: Run backend tests
-        run: php artisan test
 
   frontend-build:
     runs-on: ubuntu-latest
