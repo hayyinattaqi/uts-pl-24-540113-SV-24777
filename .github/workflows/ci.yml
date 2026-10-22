@@ -24,13 +24,14 @@ jobs:
         run: composer install --prefer-dist --no-interaction
       - name: Prepare application environment
         run: cp .env.example .env
-      - name: Set application key for tests
-        run: |
-          if [ -z "$APP_KEY" ]; then
-            echo "APP_KEY=$(php artisan key:generate --show --no-ansi)" >> "$GITHUB_ENV"
-          fi
+      - name: Run backend tests
         env:
           APP_KEY: ${{ secrets.APP_KEY }}
+        run: |
+          if [ -z "$APP_KEY" ]; then
+            export APP_KEY="$(php artisan key:generate --show --no-ansi)"
+          fi
+          php artisan test
       - name: Run backend tests
         run: php artisan test
 
