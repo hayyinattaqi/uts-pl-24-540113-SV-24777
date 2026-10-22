@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, sqlite3, pdo_sqlite
+          coverage: none
+      - name: Install backend dependencies
+        run: composer install --prefer-dist --no-interaction
+      - name: Prepare application environment
+        run: cp .env.example .env
+      - name: Run backend tests
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
+        run: |
+          if [ -z "$APP_KEY" ]; then
+            export APP_KEY="$(php artisan key:generate --show --no-ansi)"
+          fi
+          php artisan test
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: /api
