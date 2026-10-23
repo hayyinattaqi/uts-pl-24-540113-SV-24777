@@ -88,6 +88,16 @@
                     <span aria-hidden="true">✎</span>
                     <span>Ubah</span>
                   </button>
+                  <button
+                    class="icon-button delete-button"
+                    type="button"
+                    :aria-label="`Hapus ${medicine.name}`"
+                    :disabled="deletingId === medicine.id"
+                    @click="deleteMedicine(medicine)"
+                  >
+                    <span aria-hidden="true">×</span>
+                    <span>{{ deletingId === medicine.id ? 'Menghapus...' : 'Hapus' }}</span>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -126,6 +136,7 @@ const isLoading = ref(false)
 const loadError = ref('')
 const showForm = ref(false)
 const selectedMedicine = ref(null)
+const deletingId = ref(null)
 const successMessage = ref('')
 
 let searchTimeout
@@ -184,6 +195,28 @@ async function handleSaved(message) {
   closeForm()
   showSuccess(message)
   await loadMedicines()
+}
+
+async function deleteMedicine(medicine) {
+  const confirmed = window.confirm(`Hapus obat "${medicine.name}"?`)
+
+  if (!confirmed) return
+
+  deletingId.value = medicine.id
+
+  try {
+    await http.delete(`/medicines/${medicine.id}`)
+    showSuccess('Obat berhasil dihapus.')
+    await loadMedicines()
+  } catch (error) {
+    if (error.response?.status === 404) {
+      loadError.value = 'Obat tidak ditemukan. Muat ulang daftar obat.'
+    } else {
+      loadError.value = 'Obat gagal dihapus. Silakan coba lagi.'
+    }
+  } finally {
+    deletingId.value = null
+  }
 }
 
 function showSuccess(message) {
@@ -372,6 +405,19 @@ onBeforeUnmount(() => {
 
 .edit-button:hover {
   background: #eaf7f2;
+}
+
+.delete-button {
+  color: #b24d4d;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #fff0ef;
+}
+
+.icon-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
 }
 
 .state-message {
