@@ -4,7 +4,7 @@ Proyek: aplikasi inventaris stok obat klinik untuk UTS mata kuliah Konstruksi da
 Spesifikasi lengkap dan final ada di [PLAN.md](../PLAN.md). Baca dokumen itu sebelum mengerjakan apa pun.
 
 ## Aturan kerja
-- Kerjakan hanya fase atau tugas yang diminta. Jangan menambah fitur, tabel, endpoint, atau library di luar docs/PLAN.md.
+- Kerjakan hanya fase atau tugas yang diminta. Jangan menambah fitur, tabel, endpoint, atau library di luar PLAN.md.
 - Jika ada hal yang tidak jelas atau bertentangan dengan PLAN.md, tanyakan dulu, jangan menebak.
 - Ubah sesedikit mungkin file. Jangan menyentuh folder lain di luar lingkup tugas.
 - Di root repo hanya boleh ada folder backend/, frontend/, dan .github/. Jangan membuat folder lain di root.
@@ -12,7 +12,7 @@ Spesifikasi lengkap dan final ada di [PLAN.md](../PLAN.md). Baca dokumen itu seb
 - Jangan menjalankan git push, merge, atau mengubah branch main dan dev. Commit dan Pull Request dilakukan manual oleh pengguna.
 
 ## Stack dan gaya kode
-- Backend: Laravel, PHP 8.3, Sanctum. Frontend: Vue 3 (script setup), Vite, Vue Router, Axios, JavaScript (bukan TypeScript), tanpa Pinia.
+- Backend: Laravel, PHP 8.3, Sanctum. Frontend: Vue 3 (script setup), Vite, Vue Router, Axios, JavaScript (bukan TypeScript), tanpa Pinia, tanpa nilai cadangan yang ditulis di komponen; nilainya diisi oleh frontend/.env (lokal), ARG di Dockerfile, dan env job CI.
 - Identifier dan nama file dalam bahasa Inggris. Pesan error dan teks antarmuka dalam bahasa Indonesia.
 - Backend: controller tipis, validasi di FormRequest, bentuk JSON lewat API Resource, logika stok hanya di app/Services/StockService.php (DB::transaction + lockForUpdate).
 - Semua request dan respons API berformat JSON dengan status yang sesuai: 201 saat dibuat, 422 validasi gagal, 401 tanpa token, 404 tidak ditemukan, 409 konflik. Endpoint hapus mengembalikan 200 + JSON message. Request tanpa token ke /api/* harus 401 JSON, bukan redirect.
