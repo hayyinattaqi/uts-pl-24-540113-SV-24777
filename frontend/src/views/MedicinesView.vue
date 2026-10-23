@@ -6,6 +6,10 @@
         <h1 class="page-heading">Obat</h1>
         <p class="page-description">Kelola daftar obat dan batas stok minimum.</p>
       </div>
+      <button class="button" type="button" @click="openCreateForm">
+        <span aria-hidden="true">＋</span>
+        Tambah obat
+      </button>
     </header>
 
     <section class="medicine-panel" aria-label="Daftar obat">
@@ -46,9 +50,12 @@
           {{
             search
               ? 'Coba kata kunci lain untuk mencari obat.'
-              : 'Belum ada obat yang terdaftar di inventaris.'
+              : 'Tambahkan obat pertama untuk mulai mengelola inventaris.'
           }}
         </p>
+        <button v-if="!search" class="button button-secondary" type="button" @click="openCreateForm">
+          Tambah obat
+        </button>
       </div>
 
       <div v-else class="table-scroll">
@@ -59,6 +66,7 @@
               <th scope="col">Nama obat</th>
               <th scope="col">Satuan</th>
               <th scope="col" class="number-cell">Stok minimum</th>
+              <th scope="col" class="actions-heading">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -69,6 +77,19 @@
               <td class="medicine-name">{{ medicine.name }}</td>
               <td><span class="unit-pill">{{ medicine.unit }}</span></td>
               <td class="number-cell">{{ medicine.min_stock }}</td>
+              <td>
+                <div class="row-actions">
+                  <button
+                    class="icon-button edit-button"
+                    type="button"
+                    :aria-label="`Ubah ${medicine.name}`"
+                    @click="openEditForm(medicine)"
+                  >
+                    <span aria-hidden="true">✎</span>
+                    <span>Ubah</span>
+                  </button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -77,19 +98,38 @@
         </div>
       </div>
     </section>
+
+    <Transition name="toast">
+      <div v-if="successMessage" class="success-toast" role="status">
+        <span aria-hidden="true">✓</span>
+        {{ successMessage }}
+      </div>
+    </Transition>
+
+    <MedicineForm
+      v-if="showForm"
+      :medicine="selectedMedicine"
+      @close="closeForm"
+      @saved="handleSaved"
+    />
   </main>
 </template>
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import http from '../api/http'
+import MedicineForm from '../components/MedicineForm.vue'
 
 const medicines = ref([])
 const search = ref('')
 const isLoading = ref(false)
 const loadError = ref('')
+const showForm = ref(false)
+const selectedMedicine = ref(null)
+const successMessage = ref('')
 
 let searchTimeout
+let successTimeout
 let requestSequence = 0
 
 async function loadMedicines(searchTerm = search.value, sequence = ++requestSequence) {
@@ -125,12 +165,42 @@ watch(search, (value) => {
   }, 300)
 })
 
+function openCreateForm() {
+  selectedMedicine.value = null
+  showForm.value = true
+}
+
+function openEditForm(medicine) {
+  selectedMedicine.value = { ...medicine }
+  showForm.value = true
+}
+
+function closeForm() {
+  showForm.value = false
+  selectedMedicine.value = null
+}
+
+async function handleSaved(message) {
+  closeForm()
+  showSuccess(message)
+  await loadMedicines()
+}
+
+function showSuccess(message) {
+  successMessage.value = message
+  window.clearTimeout(successTimeout)
+  successTimeout = window.setTimeout(() => {
+    successMessage.value = ''
+  }, 3500)
+}
+
 onMounted(() => {
   loadMedicines()
 })
 
 onBeforeUnmount(() => {
   window.clearTimeout(searchTimeout)
+  window.clearTimeout(successTimeout)
 })
 </script>
 
@@ -141,6 +211,10 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 1.5rem;
   margin-bottom: 2rem;
+}
+
+.medicines-heading > .button {
+  flex: 0 0 auto;
 }
 
 .eyebrow {
@@ -269,6 +343,37 @@ onBeforeUnmount(() => {
   font-variant-numeric: tabular-nums;
 }
 
+.actions-heading {
+  text-align: right;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.icon-button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.edit-button {
+  color: #247d6b;
+}
+
+.edit-button:hover {
+  background: #eaf7f2;
+}
+
 .state-message {
   display: flex;
   min-height: 240px;
@@ -290,6 +395,10 @@ onBeforeUnmount(() => {
   max-width: 380px;
   margin: 0;
   font-size: 0.9rem;
+}
+
+.state-message .button {
+  margin-top: 0.6rem;
 }
 
 .state-error {
@@ -346,6 +455,44 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
+.success-toast {
+  position: fixed;
+  z-index: 20;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid #cbe9dc;
+  border-radius: 0.7rem;
+  background: #f1fbf6;
+  box-shadow: 0 12px 35px rgb(28 61 70 / 12%);
+  color: #176b56;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.success-toast span {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #d8f1e5;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  transform: translateY(8px);
+  opacity: 0;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -369,13 +516,24 @@ onBeforeUnmount(() => {
     margin-bottom: 1.5rem;
   }
 
+  .medicines-heading > .button {
+    width: 100%;
+  }
+
   .medicine-toolbar {
     align-items: flex-start;
     flex-direction: column;
   }
 
   .medicine-table {
-    min-width: 560px;
+    min-width: 700px;
+  }
+
+  .success-toast {
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    justify-content: center;
   }
 }
 </style>
