@@ -15,4 +15,4 @@ done
 
 php artisan db:seed --class=AdminSeeder --force
 
-exec php artisan serve --host=0.0.0.0 --port=8000
+exec frankenphp run --config /etc/frankenphp/Caddyfile
