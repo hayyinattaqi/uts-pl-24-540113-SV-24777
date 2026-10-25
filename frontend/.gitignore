@@ -23,3 +23,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Impeccable: file kerja lokal (screenshot, sketsa, halaman pilihan)
+.impeccable/review
+.impeccable/mocks
+.impeccable/questions
+.impeccable/brief-body.md

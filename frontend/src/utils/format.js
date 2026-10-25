@@ -34,12 +34,18 @@ export function toInputDate(date) {
 }
 
 export const batchStatusLabels = {
-  ok: { label: 'Aman', className: 'badge-ok' },
-  near_expiry: { label: 'Hampir kedaluwarsa', className: 'badge-warning' },
-  expired: { label: 'Kedaluwarsa', className: 'badge-danger' },
+  ok: { label: 'Aman', className: 'status-ok' },
+  near_expiry: { label: 'Hampir kedaluwarsa', className: 'status-warn' },
+  expired: { label: 'Kedaluwarsa', className: 'status-danger' },
 }
 
 // Ambil pesan pertama per kolom dari respons 422 Laravel.
 export function firstErrors(errors = {}) {
   return Object.fromEntries(Object.entries(errors).map(([field, messages]) => [field, messages[0]]))
+}
+
+const longDateFormatter = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+export function todayLabel() {
+  return longDateFormatter.format(new Date())
 }

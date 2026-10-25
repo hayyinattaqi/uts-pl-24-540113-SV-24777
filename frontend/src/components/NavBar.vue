@@ -1,24 +1,27 @@
 <template>
   <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">✚</span>
+    <RouterLink :to="{ name: 'dashboard' }" class="brand">
+      <BrandMark />
       <span>Inventaris Klinik</span>
-    </div>
-    <nav class="main-nav" aria-label="Navigasi utama">
+    </RouterLink>
+    <nav ref="nav" class="main-nav" aria-label="Navigasi utama">
       <RouterLink v-for="link in links" :key="link.name" :to="{ name: link.name }" class="nav-link">
         {{ link.label }}
       </RouterLink>
     </nav>
-    <button class="button button-secondary" type="button" :disabled="loading" @click="handleLogout">
-      {{ loading ? 'Keluar...' : 'Logout' }}
+    <button class="logout-button" type="button" :disabled="loading" @click="handleLogout">
+      <AppIcon name="logout" />
+      {{ loading ? 'Keluar...' : 'Keluar' }}
     </button>
   </header>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { nextTick, onMounted, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { logout } from '../api/auth'
+import AppIcon from './AppIcon.vue'
+import BrandMark from './BrandMark.vue'
 
 const links = [
   { name: 'dashboard', label: 'Dashboard' },
@@ -29,7 +32,18 @@ const links = [
 ]
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(false)
+const nav = ref(null)
+
+// Di layar sempit tab bisa digeser; pastikan tab aktif selalu terlihat.
+async function revealActiveTab() {
+  await nextTick()
+  nav.value?.querySelector('.router-link-exact-active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
+
+watch(() => route.name, revealActiveTab)
+onMounted(revealActiveTab)
 
 async function handleLogout() {
   if (loading.value) return
