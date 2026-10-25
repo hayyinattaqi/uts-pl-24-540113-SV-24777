@@ -101,6 +101,7 @@
               <th scope="col">Nama obat</th>
               <th scope="col" class="number-cell">Total stok</th>
               <th scope="col" class="number-cell">Stok minimum</th>
+              <th scope="col" class="number-cell">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -109,9 +110,18 @@
               <td class="cell-strong">{{ medicine.name }}</td>
               <td class="number-cell"><span class="badge badge-warning">{{ medicine.total_stock }} {{ medicine.unit }}</span></td>
               <td class="number-cell">{{ medicine.min_stock }}</td>
+              <td class="number-cell">
+                <RouterLink
+                  class="shortcut-link"
+                  :to="{ name: 'stock-in', query: { medicine_id: medicine.id } }"
+                  :aria-label="`Tambah stok ${medicine.name}`"
+                >
+                  ＋ Tambah stok
+                </RouterLink>
+              </td>
             </tr>
             <tr v-if="!isLoading && dashboard.low_stock.length === 0">
-              <td colspan="4" class="empty-row">Semua obat di atas stok minimum.</td>
+              <td colspan="5" class="empty-row">Semua obat di atas stok minimum.</td>
             </tr>
           </tbody>
         </table>
@@ -122,6 +132,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 import http from '../api/http'
 import { daysUntil, formatDate } from '../utils/format'
 
@@ -192,6 +203,23 @@ onMounted(loadDashboard)
 
 .summary-info {
   border-left-color: #16866e;
+}
+
+.shortcut-link {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #cbe9dc;
+  border-radius: 0.5rem;
+  background: #f1fbf6;
+  color: #116d5a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.shortcut-link:hover {
+  background: #dff4ee;
 }
 
 .text-link {
