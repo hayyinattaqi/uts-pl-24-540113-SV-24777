@@ -25,7 +25,9 @@ body {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -39,12 +41,40 @@ button {
 
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem 1.5rem;
   min-height: 76px;
-  padding: 0 clamp(1.25rem, 5vw, 4rem);
+  padding: 0.75rem clamp(1.25rem, 5vw, 4rem);
   background: #fff;
   border-bottom: 1px solid #e5edf1;
+}
+
+.main-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-right: auto;
+}
+
+.nav-link {
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.6rem;
+  color: #4e666c;
+  font-size: 0.9rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  background: #f1f6f7;
+  color: #193c43;
+}
+
+.nav-link.router-link-active {
+  background: #dff4ee;
+  color: #116d5a;
 }
 
 .brand {
@@ -224,6 +254,228 @@ button {
 .page-description {
   margin: 0.5rem 0 1.5rem;
   color: #647b81;
+}
+
+/* Komponen bersama untuk halaman stok */
+.eyebrow {
+  margin: 0 0 0.45rem;
+  color: #16866e;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.panel {
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e3ebee;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 12px 35px rgb(28 61 70 / 5%);
+}
+
+.panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.35rem;
+  border-bottom: 1px solid #edf1f3;
+}
+
+.panel-header h2 {
+  margin: 0;
+  color: #193c43;
+  font-size: 1.05rem;
+}
+
+.panel-body {
+  padding: 1.35rem;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.data-table th {
+  padding: 0.75rem 1.25rem;
+  background: #f8fafb;
+  color: #6c8187;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #edf1f3;
+  color: #4e666c;
+  font-size: 0.9rem;
+}
+
+.data-table .number-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-strong {
+  color: #243f46;
+  font-weight: 650;
+}
+
+.cell-muted {
+  color: #8a9a9e;
+  font-size: 0.8rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-ok,
+.badge-in {
+  background: #e3f6ef;
+  color: #176b56;
+}
+
+.badge-warning {
+  background: #fff4dc;
+  color: #8a5a00;
+}
+
+.badge-danger,
+.badge-out {
+  background: #ffe9e7;
+  color: #a43c3c;
+}
+
+.empty-row {
+  padding: 1.5rem 1.25rem !important;
+  color: #8a9a9e !important;
+  text-align: center;
+}
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0.7rem;
+  font-size: 0.9rem;
+}
+
+.alert-error {
+  border: 1px solid #f3cfcc;
+  background: #fff0ef;
+  color: #8f3d3d;
+}
+
+.alert-success {
+  border: 1px solid #cbe9dc;
+  background: #f1fbf6;
+  color: #176b56;
+}
+
+.alert-close {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.stock-form {
+  max-width: 620px;
+}
+
+.stock-form select,
+.stock-form textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #d7e3e6;
+  border-radius: 0.65rem;
+  outline: none;
+  background: #fff;
+  color: #172b4d;
+}
+
+.stock-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.stock-form select:focus,
+.stock-form textarea:focus {
+  border-color: #16866e;
+  box-shadow: 0 0 0 3px rgb(22 134 110 / 12%);
+}
+
+.stock-form [aria-invalid="true"] {
+  border-color: #c34848 !important;
+}
+
+.field-hint {
+  margin: 0.35rem 0 0;
+  color: #73878c;
+  font-size: 0.8rem;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+}
+
+.filter-tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 0.7rem;
+  background: #f1f6f7;
+}
+
+.filter-tab {
+  padding: 0.4rem 0.9rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #4e666c;
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.filter-tab.active {
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(28 61 70 / 10%);
+  color: #116d5a;
+}
+
+@media (max-width: 640px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table {
+    min-width: 640px;
+  }
 }
 
 @media (max-width: 480px) {
