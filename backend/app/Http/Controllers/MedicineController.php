@@ -53,7 +53,7 @@ class MedicineController extends Controller
         return response()->json([
             'data' => (new MedicineResource($medicine->refresh()))->resolve($request),
             'message' => 'Obat berhasil diperbarui.',
-        ]);
+        ]); #adding comment for testing
     }
 
     public function destroy(Medicine $medicine): JsonResponse
