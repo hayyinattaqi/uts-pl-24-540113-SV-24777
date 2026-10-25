@@ -1,0 +1,1446 @@
+{
+	"info": {
+		"_postman_id": "ee017799-3335-4541-8297-7c3626811bbb",
+		"name": "Klinik Inventaris API",
+		"description": "Koleksi pengujian API Inventaris Stok Obat Klinik: auth, obat, stok, dan dashboard. Isi variabel admin_email dan admin_password dengan kredensial lokal, lalu jalankan folder berurutan (Run collection). Token dari Login - sukses dipakai otomatis lewat auth Bearer di level koleksi.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "00 Auth - Login",
+			"item": [
+				{
+					"name": "Login - password salah",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Password salah menghasilkan status 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Respons berisi pesan error', function () {",
+									"    pm.expect(pm.response.json()).to.have.property('message');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{invalid_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Isi invalid_password dengan password yang tidak cocok dengan akun admin. Request ini mengharapkan 401.",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - email kosong",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Email kosong menghasilkan status 422', function () {",
+									"    pm.response.to.have.status(422);",
+									"});",
+									"",
+									"pm.test('Respons menunjukkan error validasi email', function () {",
+									"    pm.expect(pm.response.json().errors).to.have.property('email');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"\",\n  \"password\": \"{{admin_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Mengirim email kosong untuk memeriksa validasi 422.",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login - sukses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Login berhasil dengan status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"const response = pm.response.json();",
+									"pm.test('Respons berisi token dan data user', function () {",
+									"    pm.expect(response).to.have.property('data');",
+									"    pm.expect(response.data).to.have.property('token').that.is.a('string').and.not.empty;",
+									"    pm.expect(response.data).to.have.property('user');",
+									"    pm.expect(response).to.have.property('message');",
+									"});",
+									"",
+									"if (response.data && response.data.token) {",
+									"    pm.collectionVariables.set('token', response.data.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Login menggunakan admin yang sudah disiapkan melalui ADMIN_EMAIL dan ADMIN_PASSWORD. Token dari respons disimpan otomatis ke variabel koleksi token.",
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "01 Medicines",
+			"item": [
+				{
+					"name": "01 Daftar tanpa token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 401', () => pm.response.to.have.status(401));",
+									"pm.test('Pesan Unauthenticated.', () => pm.expect(pm.response.json().message).to.eql('Unauthenticated.'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "02 Tambah obat valid",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.collectionVariables.set(\"med_code\", \"TST-\" + Date.now().toString().slice(-6));"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 201', () => pm.response.to.have.status(201));",
+									"const body = pm.response.json();",
+									"pm.test('Ada id', () => pm.expect(body).to.have.property('data').that.is.an('object').that.has.property('id').that.is.a('number'));",
+									"pm.test('total_stock awal 0', () => pm.expect(body.data.total_stock).to.eql(0));",
+									"pm.collectionVariables.set(\"medicine_id\", body.data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"{{med_code}}\",\n  \"name\": \"Paracetamol\",\n  \"unit\": \"tablet\",\n  \"min_stock\": 10\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "03 Tambah kode duplikat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 422', () => pm.response.to.have.status(422));",
+									"pm.test('Ada error pada code', () => pm.expect(pm.response.json().errors).to.have.property('code'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"{{med_code}}\",\n  \"name\": \"Obat Duplikat\",\n  \"unit\": \"tablet\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "04 Tambah field kosong",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 422', () => pm.response.to.have.status(422));",
+									"pm.test('Ada error pada code', () => pm.expect(pm.response.json().errors).to.have.property('code'));",
+									"pm.test('Ada error pada name', () => pm.expect(pm.response.json().errors).to.have.property('name'));",
+									"pm.test('Ada error pada unit', () => pm.expect(pm.response.json().errors).to.have.property('unit'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "05 Daftar obat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"pm.test('data berupa array', () => pm.expect(pm.response.json().data).to.be.an('array'));",
+									"pm.test('Memuat total_stock dan is_low_stock', () => pm.expect(pm.response.json().data[0]).to.include.keys('total_stock', 'is_low_stock'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines?search={{med_code}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{med_code}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "06 Detail obat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"pm.test('Memuat batches', () => pm.expect(pm.response.json().data.batches).to.be.an('array'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines/{{medicine_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines",
+								"{{medicine_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "07 Detail tidak ada",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 404', () => pm.response.to.have.status(404));",
+									"pm.test('Pesan Data tidak ditemukan.', () => pm.expect(pm.response.json().message).to.eql('Data tidak ditemukan.'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines/999999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines",
+								"999999"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "08 Ubah obat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"pm.test('Nama berubah', () => pm.expect(pm.response.json().data.name).to.eql('Paracetamol 500 mg (diubah)'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines/{{medicine_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines",
+								"{{medicine_id}}"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"{{med_code}}\",\n  \"name\": \"Paracetamol 500 mg (diubah)\",\n  \"unit\": \"tablet\",\n  \"min_stock\": 20\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "09 Hapus obat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"pm.test('Balasan JSON', () => pm.response.to.be.json);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines/{{medicine_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines",
+								"{{medicine_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "10 Detail setelah hapus",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 404', () => pm.response.to.have.status(404));",
+									"pm.test('Pesan Data tidak ditemukan.', () => pm.expect(pm.response.json().message).to.eql('Data tidak ditemukan.'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines/{{medicine_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines",
+								"{{medicine_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "02 Stock",
+			"item": [
+				{
+					"name": "01 Siapkan obat untuk stok",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.collectionVariables.set(\"stock_med_code\", \"STK-\" + Date.now().toString().slice(-6));",
+									"pm.collectionVariables.set(\"batch_number\", \"BN-\" + Date.now().toString().slice(-6));",
+									"const expiry = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);",
+									"pm.collectionVariables.set(\"expiry_date\", expiry.toISOString().slice(0, 10));"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 201', () => pm.response.to.have.status(201));",
+									"pm.collectionVariables.set(\"stock_medicine_id\", pm.response.json().data.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"{{stock_med_code}}\",\n  \"name\": \"Amoxicillin 500 mg\",\n  \"unit\": \"kapsul\",\n  \"min_stock\": 100\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "02 Obat masuk valid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 201', () => pm.response.to.have.status(201));",
+									"const body = pm.response.json();",
+									"pm.test('Batch dan movement dibuat', () => { pm.expect(body.data).to.have.property('batch'); pm.expect(body.data.movement.type).to.eql('in'); });",
+									"pm.collectionVariables.set(\"batch_id\", body.data.batch.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-in",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-in"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"medicine_id\": \"{{stock_medicine_id}}\",\n  \"batch_number\": \"{{batch_number}}\",\n  \"expiry_date\": \"{{expiry_date}}\",\n  \"quantity\": 50,\n  \"notes\": \"Kiriman distributor\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "03 Obat masuk batch duplikat",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 422', () => pm.response.to.have.status(422));",
+									"pm.test('Ada error pada batch_number', () => pm.expect(pm.response.json().errors).to.have.property('batch_number'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-in",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-in"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"medicine_id\": \"{{stock_medicine_id}}\",\n  \"batch_number\": \"{{batch_number}}\",\n  \"expiry_date\": \"{{expiry_date}}\",\n  \"quantity\": 10\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "04 Obat masuk kedaluwarsa lampau",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 422', () => pm.response.to.have.status(422));",
+									"pm.test('Ada error pada expiry_date', () => pm.expect(pm.response.json().errors).to.have.property('expiry_date'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-in",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-in"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"medicine_id\": \"{{stock_medicine_id}}\",\n  \"batch_number\": \"BN-LAMA\",\n  \"expiry_date\": \"2020-01-01\",\n  \"quantity\": 10\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "05 Obat keluar valid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 201', () => pm.response.to.have.status(201));",
+									"pm.test('Stok batch berkurang menjadi 45', () => pm.expect(pm.response.json().data.batch.current_quantity).to.eql(45));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-out",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-out"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"batch_id\": \"{{batch_id}}\",\n  \"quantity\": 5,\n  \"notes\": \"Resep pasien\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "06 Obat keluar melebihi stok",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 422', () => pm.response.to.have.status(422));",
+									"pm.test('Ada error pada quantity', () => pm.expect(pm.response.json().errors).to.have.property('quantity'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-out",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-out"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"batch_id\": \"{{batch_id}}\",\n  \"quantity\": 1000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "07 Obat keluar batch tidak ada",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 404', () => pm.response.to.have.status(404));",
+									"pm.test('Pesan Data tidak ditemukan.', () => pm.expect(pm.response.json().message).to.eql('Data tidak ditemukan.'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-out",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-out"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"batch_id\": 999999,\n  \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "08 Riwayat semua",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"pm.test('Terbaru dulu: transaksi keluar di urutan pertama', () => pm.expect(pm.response.json().data[0].type).to.eql('out'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-movements",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-movements"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "09 Riwayat filter keluar",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"pm.test('Semua bertipe out', () => pm.response.json().data.forEach((m) => pm.expect(m.type).to.eql('out')));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-movements?type=out",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-movements"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "out"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "10 Riwayat tipe tidak valid",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 422', () => pm.response.to.have.status(422));",
+									"pm.test('Ada error pada type', () => pm.expect(pm.response.json().errors).to.have.property('type'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-movements?type=lain",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-movements"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "lain"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "11 Hapus obat berbatch",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 409', () => pm.response.to.have.status(409));",
+									"pm.test('Pesan penolakan', () => pm.expect(pm.response.json().message).to.eql('Obat tidak dapat dihapus karena masih memiliki batch.'));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/medicines/{{stock_medicine_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"medicines",
+								"{{stock_medicine_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "12 Obat masuk tanpa token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 401', () => pm.response.to.have.status(401));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/stock-in",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"stock-in"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "03 Dashboard",
+			"item": [
+				{
+					"name": "01 Dashboard",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 200', () => pm.response.to.have.status(200));",
+									"pm.test('Memuat near_expiry, expired, low_stock', () => pm.expect(pm.response.json().data).to.have.all.keys('near_expiry', 'expired', 'low_stock'));",
+									"pm.test('Obat stok menipis tercantum', () => pm.expect(pm.response.json().data.low_stock.map((m) => m.id)).to.include(Number(pm.collectionVariables.get('stock_medicine_id'))));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dashboard"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "02 Dashboard tanpa token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status 401', () => pm.response.to.have.status(401));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dashboard"
+							]
+						},
+						"auth": {
+							"type": "noauth"
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "99 Auth - Logout",
+			"item": [
+				{
+					"name": "Logout - tanpa token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Logout tanpa token menghasilkan status 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test('Respons berupa JSON berisi pesan', function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"    pm.expect(pm.response.json()).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						},
+						"description": "Memastikan request tanpa bearer token mendapat 401 JSON."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout - token aktif",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Logout berhasil dengan status 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Respons berisi pesan sukses', function () {",
+									"    pm.expect(pm.response.json()).to.have.property('message');",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						},
+						"description": "Jalankan setelah Login - sukses. Menghapus token aktif yang disimpan oleh test login."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout - token sudah dicabut",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Token yang sudah dicabut menghasilkan status 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						},
+						"description": "Jalankan setelah Logout - token aktif untuk memastikan token yang sudah dicabut tidak dapat digunakan lagi."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api"
+		},
+		{
+			"key": "admin_email",
+			"value": ""
+		},
+		{
+			"key": "admin_password",
+			"value": ""
+		},
+		{
+			"key": "invalid_password",
+			"value": ""
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "med_code",
+			"value": ""
+		},
+		{
+			"key": "medicine_id",
+			"value": ""
+		},
+		{
+			"key": "stock_med_code",
+			"value": ""
+		},
+		{
+			"key": "stock_medicine_id",
+			"value": ""
+		},
+		{
+			"key": "batch_number",
+			"value": ""
+		},
+		{
+			"key": "expiry_date",
+			"value": ""
+		},
+		{
+			"key": "batch_id",
+			"value": ""
+		}
+	]
+}

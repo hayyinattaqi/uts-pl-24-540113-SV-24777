@@ -18,6 +18,9 @@ class MedicineResource extends JsonResource
             'name' => $this->name,
             'unit' => $this->unit,
             'min_stock' => $this->min_stock,
+            'total_stock' => $this->totalStock(),
+            'is_low_stock' => $this->isLowStock(),
+            'batches' => BatchResource::collection($this->whenLoaded('batches')),
         ];
     }
 }
