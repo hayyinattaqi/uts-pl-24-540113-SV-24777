@@ -12,6 +12,11 @@
       </button>
     </header>
 
+    <div v-if="actionError" class="alert alert-error" role="alert">
+      <span>{{ actionError }}</span>
+      <button class="alert-close" type="button" aria-label="Tutup pesan" @click="actionError = ''">×</button>
+    </div>
+
     <section class="medicine-panel" aria-label="Daftar obat">
       <div class="medicine-toolbar">
         <label class="search-field">
@@ -65,6 +70,7 @@
               <th scope="col">Kode</th>
               <th scope="col">Nama obat</th>
               <th scope="col">Satuan</th>
+              <th scope="col" class="number-cell">Total stok</th>
               <th scope="col" class="number-cell">Stok minimum</th>
               <th scope="col" class="actions-heading">Aksi</th>
             </tr>
@@ -76,6 +82,10 @@
               </td>
               <td class="medicine-name">{{ medicine.name }}</td>
               <td><span class="unit-pill">{{ medicine.unit }}</span></td>
+              <td class="number-cell">
+                <span class="stock-total">{{ medicine.total_stock }}</span>
+                <span v-if="medicine.is_low_stock" class="badge badge-warning low-stock-badge">Stok menipis</span>
+              </td>
               <td class="number-cell">{{ medicine.min_stock }}</td>
               <td>
                 <div class="row-actions">
@@ -138,6 +148,7 @@ const showForm = ref(false)
 const selectedMedicine = ref(null)
 const deletingId = ref(null)
 const successMessage = ref('')
+const actionError = ref('')
 
 let searchTimeout
 let successTimeout
@@ -203,16 +214,21 @@ async function deleteMedicine(medicine) {
   if (!confirmed) return
 
   deletingId.value = medicine.id
+  actionError.value = ''
 
   try {
     await http.delete(`/medicines/${medicine.id}`)
     showSuccess('Obat berhasil dihapus.')
     await loadMedicines()
   } catch (error) {
-    if (error.response?.status === 404) {
-      loadError.value = 'Obat tidak ditemukan. Muat ulang daftar obat.'
+    const status = error.response?.status
+
+    if (status === 409) {
+      actionError.value = `"${medicine.name}" tidak dapat dihapus karena masih memiliki batch stok. Riwayat stoknya harus tetap tersimpan.`
+    } else if (status === 404) {
+      actionError.value = 'Obat tidak ditemukan. Muat ulang daftar obat.'
     } else {
-      loadError.value = 'Obat gagal dihapus. Silakan coba lagi.'
+      actionError.value = 'Obat gagal dihapus. Silakan coba lagi.'
     }
   } finally {
     deletingId.value = null
@@ -378,6 +394,15 @@ onBeforeUnmount(() => {
 
 .actions-heading {
   text-align: right;
+}
+
+.stock-total {
+  color: #243f46;
+  font-weight: 650;
+}
+
+.low-stock-badge {
+  margin-left: 0.4rem;
 }
 
 .row-actions {
@@ -572,7 +597,7 @@ onBeforeUnmount(() => {
   }
 
   .medicine-table {
-    min-width: 700px;
+    min-width: 820px;
   }
 
   .success-toast {
