@@ -105,7 +105,12 @@
               @input="clearFieldError('quantity')"
             />
             <p v-if="fieldErrors.quantity" class="field-error" role="alert">{{ fieldErrors.quantity }}</p>
-            <p v-else-if="selectedBatch" class="field-hint">Maksimal {{ selectedBatch.current_quantity }} dari batch {{ selectedBatch.batch_number }}.</p>
+            <p v-else-if="selectedBatch" class="field-hint">
+              Maksimal {{ selectedBatch.current_quantity }} dari batch {{ selectedBatch.batch_number }}.
+              <span class="inline-remaining">
+                Sisa sesudah: <strong :class="remainingAfter < 0 ? 'qty-over' : 'qty-strong'">{{ remainingAfter }}</strong>
+              </span>
+            </p>
           </div>
 
           <div class="form-field">
@@ -330,9 +335,22 @@ onMounted(loadMedicines)
   padding: 0 1.1rem 0.9rem;
 }
 
+/* Di layar lebar ringkasan ada di kartu samping; di layar sempit tampil di bawah kolom Jumlah. */
+.inline-remaining {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .stock-layout {
     grid-template-columns: 1fr;
+  }
+
+  .batch-summary {
+    display: none;
+  }
+
+  .inline-remaining {
+    display: inline;
   }
 }
 
