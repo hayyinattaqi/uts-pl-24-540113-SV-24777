@@ -6,14 +6,8 @@
       aria-modal="true"
       aria-labelledby="medicine-form-title"
     >
-      <header class="modal-header">
-        <div>
-          <p class="modal-eyebrow">{{ isEditing ? 'PERBARUI INVENTARIS' : 'INVENTARIS KLINIK' }}</p>
-          <h2 id="medicine-form-title">{{ isEditing ? 'Ubah obat' : 'Tambah obat' }}</h2>
-          <p class="modal-description">
-            Isi informasi obat pada kolom di bawah.
-          </p>
-        </div>
+      <header class="modal-head">
+        <h2 id="medicine-form-title">{{ isEditing ? 'Ubah obat' : 'Tambah obat' }}</h2>
         <button
           class="close-button"
           type="button"
@@ -21,9 +15,12 @@
           :disabled="isSubmitting"
           @click="requestClose"
         >
-          ×
+          <AppIcon name="close" />
         </button>
       </header>
+      <p class="card-meta">
+        {{ isEditing ? 'Mengubah data obat tidak mengubah stok batch-nya.' : 'Stok awal dicatat terpisah lewat Obat Masuk.' }}
+      </p>
 
       <form class="medicine-form" @submit.prevent="submitForm">
         <div class="form-field">
@@ -108,7 +105,10 @@
           </div>
         </div>
 
-        <p v-if="generalError" class="form-error" role="alert">{{ generalError }}</p>
+        <p v-if="generalError" class="alert alert-error" role="alert">
+          <AppIcon name="alert" />
+          <span>{{ generalError }}</span>
+        </p>
 
         <footer class="modal-actions">
           <button
@@ -131,6 +131,7 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import http from '../api/http'
+import AppIcon from './AppIcon.vue'
 
 const props = defineProps({
   medicine: {
@@ -242,68 +243,54 @@ async function submitForm() {
   inset: 0;
   display: grid;
   overflow-y: auto;
-  align-items: center;
-  justify-items: center;
+  place-items: center;
   padding: 1.25rem;
-  background: rgb(20 42 49 / 48%);
-  backdrop-filter: blur(3px);
+  background: rgb(15 36 24 / 52%);
 }
 
 .medicine-modal {
-  width: min(100%, 560px);
+  width: min(100%, 540px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: 0 24px 60px rgb(15 36 24 / 28%);
   overflow: hidden;
-  border: 1px solid #e4ecee;
-  border-radius: 1rem;
-  background: #fff;
-  box-shadow: 0 25px 80px rgb(12 35 43 / 25%);
 }
 
-.modal-header {
+.modal-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.6rem 1.75rem 1.3rem;
-  border-bottom: 1px solid #edf1f3;
+  padding: 0.8rem 0.8rem 0.8rem 1.4rem;
+  background: var(--green-800);
+  color: #fff;
 }
 
-.modal-eyebrow {
-  margin: 0 0 0.35rem;
-  color: #16866e;
-  font-size: 0.7rem;
-  font-weight: 750;
-  letter-spacing: 0.11em;
-}
-
-.modal-header h2 {
+.modal-head h2 {
   margin: 0;
-  color: #193c43;
-  font-size: 1.45rem;
-  letter-spacing: -0.035em;
+  font-size: 1.1rem;
 }
 
-.modal-description {
-  margin: 0.4rem 0 0;
-  color: #71858a;
-  font-size: 0.88rem;
+.card-meta {
+  margin: 0;
+  padding-inline: 1.4rem;
 }
 
 .close-button {
   display: grid;
-  width: 2rem;
-  height: 2rem;
-  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
   place-items: center;
   border: 0;
-  border-radius: 0.5rem;
-  background: #f3f7f8;
-  color: #5e7479;
-  font-size: 1.4rem;
-  line-height: 1;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--head-ink-muted);
 }
 
 .close-button:hover:not(:disabled) {
-  background: #e8eff1;
+  background: var(--green-900);
+  color: #fff;
 }
 
 .close-button:disabled {
@@ -312,63 +299,13 @@ async function submitForm() {
 }
 
 .medicine-form {
-  padding: 1.5rem 1.75rem 1.65rem;
-}
-
-.medicine-form .form-field {
-  margin-bottom: 1rem;
-}
-
-.medicine-form label {
-  display: block;
-  margin-bottom: 0.42rem;
-  color: #314f55;
-  font-size: 0.86rem;
-  font-weight: 650;
-}
-
-.medicine-form input {
-  width: 100%;
-  min-height: 44px;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid #d7e3e6;
-  border-radius: 0.6rem;
-  outline: none;
-  background: #fff;
-  color: #172b4d;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
-}
-
-.medicine-form input:focus {
-  border-color: #16866e;
-  box-shadow: 0 0 0 3px rgb(22 134 110 / 10%);
-}
-
-.medicine-form input[aria-invalid="true"] {
-  border-color: #c34848;
+  padding: 1.4rem 1.4rem 1.5rem;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-.field-error,
-.form-error {
-  color: #b23b3b;
-  font-size: 0.82rem;
-}
-
-.field-error {
-  margin: 0.35rem 0 0;
-}
-
-.form-error {
-  margin: 0 0 1rem;
-  padding: 0.7rem 0.8rem;
-  border-radius: 0.55rem;
-  background: #fff0ef;
+  gap: 0 1rem;
 }
 
 .modal-actions {
@@ -378,27 +315,13 @@ async function submitForm() {
   margin-top: 1.5rem;
 }
 
-.modal-actions .button {
-  min-width: 112px;
-}
-
 @media (max-width: 480px) {
-  .modal-header {
-    padding-inline: 1.2rem;
-  }
-
-  .medicine-form {
-    padding: 1.2rem;
-  }
-
   .form-grid {
     grid-template-columns: 1fr;
-    gap: 0;
   }
 
   .modal-actions .button {
     flex: 1;
-    min-width: 0;
   }
 }
 </style>
