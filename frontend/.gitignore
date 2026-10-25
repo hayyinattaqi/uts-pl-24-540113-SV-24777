@@ -24,8 +24,5 @@ dist-ssr
 *.sln
 *.sw?
 
-# Impeccable: file kerja lokal (screenshot, sketsa, halaman pilihan)
-.impeccable/review
-.impeccable/mocks
-.impeccable/questions
-.impeccable/brief-body.md
+# Impeccable: file kerja desain lokal (screenshot, sketsa, kontrak)
+.impeccable/
