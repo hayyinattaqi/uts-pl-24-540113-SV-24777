@@ -102,9 +102,11 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import http from '../api/http'
 import { firstErrors, formatDate, toInputDate } from '../utils/format'
 
+const route = useRoute()
 const medicines = ref([])
 const medicinesLoading = ref(false)
 const isSubmitting = ref(false)
@@ -129,6 +131,12 @@ async function loadMedicines() {
   try {
     const response = await http.get('/medicines')
     medicines.value = response.data.data
+
+    // Pintasan "Tambah stok" dari Dashboard mengirim ?medicine_id=<id>.
+    const preselected = Number(route.query.medicine_id)
+    if (medicines.value.some((medicine) => medicine.id === preselected)) {
+      form.medicine_id = preselected
+    }
   } catch {
     generalError.value = 'Daftar obat tidak dapat dimuat. Muat ulang halaman.'
   } finally {
