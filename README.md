@@ -11,18 +11,18 @@ Aplikasi web untuk membantu petugas klinik mencatat stok obat, memantau kedaluwa
 
 ## Ruang Lingkup
 
-Aplikasi direncanakan menyediakan login/logout berbasis token, CRUD obat, pencatatan obat masuk dan keluar, riwayat transaksi, serta dashboard stok dan kedaluwarsa. Rincian kebutuhan dan aturan bisnis ada di [PLAN.md](PLAN.md).
+Aplikasi menyediakan login/logout berbasis token, CRUD obat, pencatatan obat masuk dan keluar, riwayat transaksi, serta dashboard stok dan kedaluwarsa. Rincian kebutuhan, aturan bisnis, dan aturan teknis ada di [CLAUDE.md](CLAUDE.md).
 
 ## Struktur Repository
 
 ```text
-.github/
-backend/
-frontend/
-PLAN.md
+.github/workflows/   workflow CI/CD
+backend/             API Laravel
+frontend/            aplikasi Vue
+CLAUDE.md            spesifikasi proyek
 README.md
 ```
 
 ## Status Pengerjaan
 
-Fase 0 selesai. Fase 1 menyiapkan kerangka Laravel dan Vue serta workflow CI; fitur aplikasi akan ditambahkan bertahap sesuai PLAN.
+Backend (auth dan CRUD obat), frontend (login dan CRUD obat), CI, dan Dockerfile sudah tersedia. Docker Compose, deployment ke GHCR, dan fitur stok sedang dikerjakan.
