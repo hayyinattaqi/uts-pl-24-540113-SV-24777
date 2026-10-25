@@ -89,7 +89,7 @@ async function handleSubmit() {
   try {
     const response = await login(email.value, password.value)
     setToken(response.data.data.token)
-    await router.replace({ name: 'medicines' })
+    await router.replace({ name: 'dashboard' })
   } catch (error) {
     const status = error.response?.status
 
