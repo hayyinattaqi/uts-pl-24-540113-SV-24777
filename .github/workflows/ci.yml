@@ -7,9 +7,12 @@ on:
       - dev
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   backend-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: backend
@@ -34,7 +37,7 @@ jobs:
           php artisan test
 
   frontend-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend
@@ -51,3 +54,63 @@ jobs:
         run: npm run build
         env:
           VITE_API_BASE_URL: /api
+
+  deploy:
+    needs: [backend-test, frontend-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare compose environment
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          if [ -z "$APP_KEY" ] || [ -z "$DB_PASSWORD" ]; then
+            echo "::error::Secrets APP_KEY dan DB_PASSWORD belum diisi."
+            exit 1
+          fi
+          {
+            echo "DB_DATABASE=clinic_inventory"
+            echo "DB_USERNAME=clinic"
+            echo "DB_PASSWORD=$DB_PASSWORD"
+            echo "DB_ROOT_PASSWORD=$(openssl rand -hex 16)"
+            echo "APP_KEY=$APP_KEY"
+            echo "ADMIN_EMAIL=admin@example.test"
+            echo "ADMIN_PASSWORD=$(openssl rand -hex 12)"
+          } > .env
+      - name: Smoke test compose stack
+        run: |
+          docker compose up -d --build --wait
+          status=$(curl -s -o /dev/null -w '%{http_code}' -H 'Accept: application/json' http://localhost:8080/api/medicines)
+          echo "GET /api/medicines tanpa token -> $status"
+          test "$status" = "401"
+      - name: Stop compose stack
+        if: always()
+        run: docker compose down -v
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set image name prefix
+        id: image
+        run: echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          provenance: false
+          tags: ${{ steps.image.outputs.prefix }}-backend:${{ github.sha }}
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          build-args: VITE_API_BASE_URL=/api
+          push: true
+          provenance: false
+          tags: ${{ steps.image.outputs.prefix }}-frontend:${{ github.sha }}
