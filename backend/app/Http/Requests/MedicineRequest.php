@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class MedicineRequest extends FormRequest
@@ -35,18 +37,19 @@ class MedicineRequest extends FormRequest
     /**
      * @return array<string, string>
      */
-    public function messages(): array
+    /**
+     * Catat log terstruktur saat validasi data obat gagal.
+     */
+    protected function failedValidation(Validator $validator): void
     {
-        return [
-            'code.required' => 'Kode obat wajib diisi.',
-            'code.max' => 'Kode obat maksimal 30 karakter.',
-            'code.unique' => 'Kode obat sudah digunakan.',
-            'name.required' => 'Nama obat wajib diisi.',
-            'name.max' => 'Nama obat maksimal 150 karakter.',
-            'unit.required' => 'Satuan wajib diisi.',
-            'unit.max' => 'Satuan maksimal 20 karakter.',
-            'min_stock.integer' => 'Stok minimum harus berupa bilangan bulat.',
-            'min_stock.min' => 'Stok minimum tidak boleh kurang dari 0.',
-        ];
+        Log::warning('Validasi data obat gagal.', [
+            'action' => 'validate_medicine_input',
+            'user_id' => $this->user()?->id ?? 'guest',
+            'ip' => $this->ip(),
+            'failed_fields' => array_keys($validator->errors()->toArray()),
+            'reason' => 'Input data obat tidak memenuhi aturan validasi yang ditentukan.',
+        ]);
+
+        parent::failedValidation($validator);
     }
 }
