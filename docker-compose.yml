@@ -16,6 +16,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
     build: ./backend
@@ -26,21 +31,26 @@ services:
       DB_PORT: 3306
       APP_ENV: production
       APP_DEBUG: "false"
-      CACHE_STORE: file
+      CACHE_STORE: database
       SESSION_DRIVER: file
       QUEUE_CONNECTION: sync
-      LOG_CHANNEL: stderr
+      LOG_CHANNEL: stdout
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "8000:8000"
     healthcheck:
-      test: ["CMD", "curl", "-fs", "http://localhost:8000/up"]
-      interval: 5s
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
       timeout: 5s
-      retries: 30
-      start_period: 30s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build:
@@ -52,6 +62,12 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   db_data:
+
