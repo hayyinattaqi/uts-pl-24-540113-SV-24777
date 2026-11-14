@@ -1,0 +1,12 @@
+groups:
+  - name: service_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 15s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Layanan {{ $labels.job }} terdeteksi mati atau tidak merespons"
+          description: "Target {{ $labels.instance }} dari job {{ $labels.job }} berstatus DOWN selama lebih dari 15 detik."
+          action: "Tindakan pertama: Segera jalankan 'docker compose ps' untuk memastikan kontainer mana yang mati, periksa log dengan 'docker compose logs --tail=50 {{ $labels.job }}', lalu nyalakan kembali menggunakan 'docker compose restart {{ $labels.job }}'."
